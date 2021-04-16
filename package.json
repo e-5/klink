@@ -10,7 +10,10 @@
   "dependencies": {
     "axios": "^0.21.1",
     "core-js": "^3.6.4",
+    "crypto-js": "^4.0.0",
     "klinecharts": "^7.0.0",
+    "moment": "^2.29.1",
+    "qs": "^6.10.1",
     "vue": "^2.6.11"
   },
   "devDependencies": {

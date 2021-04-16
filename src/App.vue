@@ -1,58 +1,69 @@
 <template>
   <div id="app" class="app">
-    <BasicKLineChart />
-    <ChartTypeKLineChart />
-    <TechnicalIndicatorKLineChart />
-    <CustomThemeKLineChart />
-    <LanguageKLineChart />
-    <TooltipKLineChart />
-    <TimezoneKLineChart />
-    <DrawGraphicMarkKLineChart />
-    <LoadMoreKLineChart />
-    <UpdateKLineChart />
-    <CustomCandleMarkKLineChart />
-    <CustomTechnicalIndicatorMarkKLineChart />
+    <Sidebar class="Sidebar" />
+    <div class="contentMain">
+      <div v-for="(val, i) in dataList" :key="i">
+        <KLinkComponent :data="val.data" :title="val.period" :pIndex="i" />
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import BasicKLineChart from "@/components/BasicKLineChart";
-import ChartTypeKLineChart from "@/components/ChartTypeKLineChart";
-import TechnicalIndicatorKLineChart from "@/components/TechnicalIndicatorKLineChart";
-import CustomThemeKLineChart from "@/components/CustomThemeKLineChart";
-import LanguageKLineChart from "@/components/LanguageKLineChart";
-import TooltipKLineChart from "@/components/TooltipKLineChart";
-import TimezoneKLineChart from "@/components/TimezoneKLineChart";
-import DrawGraphicMarkKLineChart from "@/components/DrawGraphicMarkKLineChart";
-import LoadMoreKLineChart from "@/components/LoadMoreKLineChart";
-import UpdateKLineChart from "@/components/UpdateKLineChart";
-import CustomCandleMarkKLineChart from "@/components/CustomCandleMarkKLineChart";
-import CustomTechnicalIndicatorMarkKLineChart from "@/components/CustomTechnicalIndicatorMarkKLineChart";
+import KLinkComponent from "@/components/KLineComponent";
+import Sidebar from "@/components/Sidebar";
 
 export default {
   name: "App",
   components: {
-    BasicKLineChart,
-    ChartTypeKLineChart,
-    TechnicalIndicatorKLineChart,
-    CustomThemeKLineChart,
-    LanguageKLineChart,
-    TooltipKLineChart,
-    TimezoneKLineChart,
-    DrawGraphicMarkKLineChart,
-    LoadMoreKLineChart,
-    UpdateKLineChart,
-    CustomCandleMarkKLineChart,
-    CustomTechnicalIndicatorMarkKLineChart,
+    KLinkComponent,
+    Sidebar,
   },
-  async mounted() {
-    const res = await this.$req({
-      url: "http://api-aws.huobi.pro/market/history/kline",
-      data: {
-        period: '1min'
+  data: () => ({
+    dataList: [
+      { period: "1min", data: [] },
+      { period: "5min", data: [] },
+      { period: "30min", data: [] },
+      { period: "60min", data: [] },
+      { period: "4hour", data: [] },
+      { period: "1week", data: [] },
+    ],
+    TransactionInfo: {},
+  }),
+  created() {
+    this.getContentData();
+    this.getTransactionInfo();
+  },
+  async mounted() {},
+  methods: {
+    getContentData() {
+      this.dataList.forEach(async (item, index) => {
+        const res = await this.$req({
+          url: "/market/history/kline",
+          data: {
+            period: item.period,
+            size: 2000,
+            symbol: "btcusdt",
+          },
+        });
+        if (res.status === "ok") {
+          console.log(res.data);
+          this.dataList[index].data = res.data.map((item) => ({
+            ...item,
+            timestamp: item.id * 1000,
+          }));
+        }
+      });
+    },
+    async getTransactionInfo() {
+      const res = await this.$req({
+        url: "/v1/common/symbols",
+      });
+      console.log(res);
+      if (res.status === "ok") {
+        // this.dataList[index].data = res.data;
       }
-    });
-    console.log(res);
+    },
   },
 };
 </script>
@@ -74,13 +85,19 @@ p {
 p {
   margin: 0;
 }
-
-.app {
+.Sidebar{
+  width: 20%;
+}
+.contentMain {
   display: flex;
   flex-direction: row;
   justify-content: center;
   flex-wrap: wrap;
   padding: 15px;
+  width: 80%;
+}
+.app {
+  display: flex;
 }
 .k-line-chart-container {
   display: flex;
