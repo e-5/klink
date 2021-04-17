@@ -1,11 +1,15 @@
 <template>
   <div id="app" class="app">
     <Sidebar class="Sidebar" :dataList="TransactionInfo" />
-    <div class="contentMain" v-if="dataList.length">
+    <div class="contentMain">
+      <div>
+        <TechnicalIndicatorKLineChart />
+      </div>
       <div v-for="(val, i) in dataList" :key="i">
-        <div v-if="val.data">
+        <div v-if="val.data.length">
           <KLinkComponent :data="val.data" :title="val.period" :pIndex="i" />
         </div>
+        <div v-else class="k-line-chart-container"></div>
       </div>
     </div>
   </div>
@@ -13,6 +17,7 @@
 
 <script>
 import KLinkComponent from "@/components/KLineComponent";
+import TechnicalIndicatorKLineChart from "@/components/TechnicalIndicatorKLineChart";
 import Sidebar from "@/components/Sidebar";
 import moment from "moment";
 
@@ -20,6 +25,7 @@ export default {
   name: "App",
   components: {
     KLinkComponent,
+    TechnicalIndicatorKLineChart,
     Sidebar,
   },
   data: () => ({
@@ -66,12 +72,7 @@ export default {
         // baseUrl:'api.hbdm.vn',
       });
       if (res.status === "ok") {
-        console.log(res);
         res.data = res.data.map((item) => {
-          console.log(item.settlement_date);
-          console.log(
-            moment(new Date(1618646400000)).format("YYYY-MM-DD HH:mm:ss")
-          );
           item.settlement_date = moment(
             new Date(Number(item.settlement_date))
           ).format("YYYY-MM-DD HH:mm:ss");
