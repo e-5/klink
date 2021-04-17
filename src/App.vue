@@ -12,6 +12,7 @@
 <script>
 import KLinkComponent from "@/components/KLineComponent";
 import Sidebar from "@/components/Sidebar";
+import moment from "moment";
 
 export default {
   name: "App",
@@ -21,12 +22,13 @@ export default {
   },
   data: () => ({
     dataList: [
+      // 1min 5min 60min 4hour 1week 1mon
       { period: "1min", data: [] },
       { period: "5min", data: [] },
-      { period: "30min", data: [] },
       { period: "60min", data: [] },
       { period: "4hour", data: [] },
       { period: "1week", data: [] },
+      { period: "1mon", data: [] },
     ],
     TransactionInfo: [],
   }),
@@ -39,18 +41,19 @@ export default {
     getContentData() {
       this.dataList.forEach(async (item, index) => {
         const res = await this.$req({
-          url: "/linear-swap-ex/market/history/kline",
+          url: "/swap-ex/market/history/kline",
           data: {
             period: item.period,
             size: 2000,
-            symbol: "btcusdt",
-            contract_code: "BTC-USDT",
+            // symbol: "btcusdt",
+            contract_code: "BTC-USD",
           },
         });
         if (res.status === "ok") {
           this.dataList[index].data = res.data.map((item) => ({
             ...item,
             timestamp: item.id * 1000,
+            volume: item.vol,
           }));
         }
       });
@@ -62,6 +65,29 @@ export default {
       });
       if (res.status === "ok") {
         console.log(res);
+        res.data = res.data.map((item) => {
+          console.log(item.settlement_date);
+          console.log(
+            moment(new Date(1618646400000)).format("YYYY-MM-DD HH:mm:ss")
+          );
+          item.settlement_date = moment(
+            new Date(Number(item.settlement_date))
+          ).format("YYYY-MM-DD HH:mm:ss");
+          const data = [];
+          for (let key in item) {
+            if (!["support_margin_mode", "symbol"].includes(key)) {
+              const obj = [];
+
+              obj.push(key.toLocaleUpperCase());
+              obj.push(item[key]);
+              data.push(obj);
+            }
+          }
+          return {
+            title: item.symbol,
+            data,
+          };
+        });
         this.TransactionInfo = res.data;
       }
     },
@@ -86,11 +112,29 @@ p {
 p {
   margin: 0;
 }
+
+.Sidebar::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  background-color: #f5f5f5;
+}
+.Sidebar::-webkit-scrollbar {
+  width: 12px;
+  background-color: #f5f5f5;
+}
+.Sidebar::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  -webkit-box-shadow: inset 0 0 6px rgba(25, 25, 25，1);
+  background-color: #555;
+}
+/* .Sidebar::-webkit-scrollbar {
+  display: none;
+} */
 .Sidebar {
   width: 20%;
   background-color: #1f2126;
   height: 100vh;
-  overflow: scroll;
+  overflow-y: scroll;
   position: fixed;
   left: 0;
   top: 0;
@@ -110,7 +154,7 @@ p {
 .k-line-chart-container {
   display: flex;
   flex-direction: column;
-  margin: 15px 0;
+  margin: 60px 0;
   border-radius: 2px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   background-color: #1f2126;

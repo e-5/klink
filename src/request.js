@@ -9,9 +9,6 @@ axios.interceptors.request.use(config => {
             delete config.data
         }
     }
-    console.log(config.headers)
-    console.log(config.header)
-    // delete config.headers.origin
     return config
 })
 
@@ -36,7 +33,6 @@ export default function (config) {
     }
     data = sortObj(data)
     let str = `${(config.method || 'GET').toLocaleUpperCase()}\n${baseUrl}\n${config.url}\n${qs.stringify(data)}`
-    console.log(str)
     let SKEnc = CryptoJS.HmacSHA256(str, '4caf0de0-f3ff7aa9-2924977a-9d21d')
     let sign = CryptoJS.HmacSHA256(str, SKEnc).toString()
 
