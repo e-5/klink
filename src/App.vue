@@ -1,58 +1,110 @@
 <template>
   <div id="app" class="app">
-    <BasicKLineChart />
-    <ChartTypeKLineChart />
-    <TechnicalIndicatorKLineChart />
-    <CustomThemeKLineChart />
-    <LanguageKLineChart />
-    <TooltipKLineChart />
-    <TimezoneKLineChart />
-    <DrawGraphicMarkKLineChart />
-    <LoadMoreKLineChart />
-    <UpdateKLineChart />
-    <CustomCandleMarkKLineChart />
-    <CustomTechnicalIndicatorMarkKLineChart />
+    <Sidebar @getTitle="getTitle" class="Sidebar" :dataList="TransactionInfo" />
+    <div class="contentMain">
+      <div v-for="(val, i) in dataList" :key="i">
+        <ContentItem :data="val" :pIndex="i" />
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import BasicKLineChart from "@/components/BasicKLineChart";
-import ChartTypeKLineChart from "@/components/ChartTypeKLineChart";
-import TechnicalIndicatorKLineChart from "@/components/TechnicalIndicatorKLineChart";
-import CustomThemeKLineChart from "@/components/CustomThemeKLineChart";
-import LanguageKLineChart from "@/components/LanguageKLineChart";
-import TooltipKLineChart from "@/components/TooltipKLineChart";
-import TimezoneKLineChart from "@/components/TimezoneKLineChart";
-import DrawGraphicMarkKLineChart from "@/components/DrawGraphicMarkKLineChart";
-import LoadMoreKLineChart from "@/components/LoadMoreKLineChart";
-import UpdateKLineChart from "@/components/UpdateKLineChart";
-import CustomCandleMarkKLineChart from "@/components/CustomCandleMarkKLineChart";
-import CustomTechnicalIndicatorMarkKLineChart from "@/components/CustomTechnicalIndicatorMarkKLineChart";
+import ContentItem from "@/components/contentItem";
+import Sidebar from "@/components/Sidebar";
+import moment from "moment";
 
 export default {
   name: "App",
   components: {
-    BasicKLineChart,
-    ChartTypeKLineChart,
-    TechnicalIndicatorKLineChart,
-    CustomThemeKLineChart,
-    LanguageKLineChart,
-    TooltipKLineChart,
-    TimezoneKLineChart,
-    DrawGraphicMarkKLineChart,
-    LoadMoreKLineChart,
-    UpdateKLineChart,
-    CustomCandleMarkKLineChart,
-    CustomTechnicalIndicatorMarkKLineChart,
+    ContentItem,
+    Sidebar,
   },
-  async mounted() {
-    const res = await this.$req({
-      url: "http://api-aws.huobi.pro/market/history/kline",
-      data: {
-        period: '1min'
+  data: () => ({
+    dataList: [
+      // 1min 5min 60min 4hour 1week 1mon
+      { period: "1min", data: [] },
+      { period: "5min", data: [] },
+      { period: "60min", data: [] },
+      { period: "4hour", data: [] },
+      { period: "1week", data: [] },
+      { period: "1mon", data: [] },
+    ],
+    TransactionInfo: [],
+    contract_code: "BTC",
+    
+  }),
+  created() {
+    this.getContentData();
+    this.getTransactionInfo();
+  },
+  async mounted() {},
+  methods: {
+    initDataList() {
+      this.dataList = [
+        // 1min 5min 60min 4hour 1week 1mon
+        { period: "1min", data: [] },
+        { period: "5min", data: [] },
+        { period: "60min", data: [] },
+        { period: "4hour", data: [] },
+        { period: "1week", data: [] },
+        { period: "1mon", data: [] },
+      ];
+    },
+    getTitle(t) {
+      this.contract_code = t;
+      this.initDataList();
+      this.getContentData();
+    },
+    getContentData() {
+      // const loading = this.loading;
+      this.dataList.forEach(async (item, index) => {
+        const res = await this.$req({
+          url: "/swap-ex/market/history/kline",
+          data: {
+            period: item.period,
+            size: 2000,
+            // symbol: "btcusdt",
+            contract_code: this.contract_code + "-USD",
+          },
+        });
+        if (res.status === "ok") {
+          this.dataList[index].data = res.data.map((item) => ({
+            ...item,
+            timestamp: item.id * 1000,
+            volume: item.vol,
+          }));
+        }
+      });
+    },
+    async getTransactionInfo() {
+      const res = await this.$req({
+        url: "/linear-swap-api/v1/swap_contract_info",
+        // baseUrl:'api.hbdm.vn',
+      });
+      if (res.status === "ok") {
+        res.data = res.data.map((item) => {
+          item.settlement_date = moment(
+            new Date(Number(item.settlement_date))
+          ).format("YYYY-MM-DD HH:mm:ss");
+          const data = [];
+          for (let key in item) {
+            if (!["support_margin_mode", "symbol"].includes(key)) {
+              const obj = [];
+
+              obj.push(key.toLocaleUpperCase());
+              obj.push(item[key]);
+              data.push(obj);
+            }
+          }
+          return {
+            title: item.symbol,
+            data,
+          };
+        });
+        this.TransactionInfo = res.data;
       }
-    });
-    console.log(res);
+    },
   },
 };
 </script>
@@ -75,21 +127,52 @@ p {
   margin: 0;
 }
 
-.app {
+.Sidebar::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  background-color: #f5f5f5;
+}
+.Sidebar::-webkit-scrollbar {
+  width: 12px;
+  background-color: #f5f5f5;
+}
+.Sidebar::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  -webkit-box-shadow: inset 0 0 6px rgba(25, 25, 25，1);
+  background-color: #555;
+}
+/* .Sidebar::-webkit-scrollbar {
+  display: none;
+} */
+.Sidebar {
+  width: 20%;
+  background-color: #1f2126;
+  height: 100vh;
+  overflow-y: scroll;
+  position: fixed;
+  left: 0;
+  top: 0;
+}
+.contentMain {
+  margin-left: 20%;
   display: flex;
   flex-direction: row;
-  justify-content: center;
+  justify-content: space-around;
   flex-wrap: wrap;
   padding: 15px;
+  width: 80%;
+}
+.app {
+  display: flex;
 }
 .k-line-chart-container {
   display: flex;
   flex-direction: column;
-  margin: 15px;
+  margin: 60px 0;
   border-radius: 2px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   background-color: #1f2126;
-  width: 620px;
+  width: 700px;
   height: 440px;
   padding: 16px 6px 16px 16px;
 }
