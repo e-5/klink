@@ -1,9 +1,11 @@
 <template>
   <div id="app" class="app">
     <Sidebar class="Sidebar" :dataList="TransactionInfo" />
-    <div class="contentMain">
+    <div class="contentMain" v-if="dataList.length">
       <div v-for="(val, i) in dataList" :key="i">
-        <KLinkComponent :data="val.data" :title="val.period" :pIndex="i" />
+        <div v-if="val.data">
+          <KLinkComponent :data="val.data" :title="val.period" :pIndex="i" />
+        </div>
       </div>
     </div>
   </div>
