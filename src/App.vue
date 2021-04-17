@@ -1,31 +1,23 @@
 <template>
   <div id="app" class="app">
-    <Sidebar class="Sidebar" :dataList="TransactionInfo" />
+    <Sidebar @getTitle="getTitle" class="Sidebar" :dataList="TransactionInfo" />
     <div class="contentMain">
-      <div>
-        <TechnicalIndicatorKLineChart />
-      </div>
       <div v-for="(val, i) in dataList" :key="i">
-        <div v-if="val.data.length">
-          <KLinkComponent :data="val.data" :title="val.period" :pIndex="i" />
-        </div>
-        <div v-else class="k-line-chart-container"></div>
+        <ContentItem :data="val" :pIndex="i" />
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import KLinkComponent from "@/components/KLineComponent";
-import TechnicalIndicatorKLineChart from "@/components/TechnicalIndicatorKLineChart";
+import ContentItem from "@/components/contentItem";
 import Sidebar from "@/components/Sidebar";
 import moment from "moment";
 
 export default {
   name: "App",
   components: {
-    KLinkComponent,
-    TechnicalIndicatorKLineChart,
+    ContentItem,
     Sidebar,
   },
   data: () => ({
@@ -39,6 +31,8 @@ export default {
       { period: "1mon", data: [] },
     ],
     TransactionInfo: [],
+    contract_code: "BTC",
+    
   }),
   created() {
     this.getContentData();
@@ -46,7 +40,24 @@ export default {
   },
   async mounted() {},
   methods: {
+    initDataList() {
+      this.dataList = [
+        // 1min 5min 60min 4hour 1week 1mon
+        { period: "1min", data: [] },
+        { period: "5min", data: [] },
+        { period: "60min", data: [] },
+        { period: "4hour", data: [] },
+        { period: "1week", data: [] },
+        { period: "1mon", data: [] },
+      ];
+    },
+    getTitle(t) {
+      this.contract_code = t;
+      this.initDataList();
+      this.getContentData();
+    },
     getContentData() {
+      // const loading = this.loading;
       this.dataList.forEach(async (item, index) => {
         const res = await this.$req({
           url: "/swap-ex/market/history/kline",
@@ -54,7 +65,7 @@ export default {
             period: item.period,
             size: 2000,
             // symbol: "btcusdt",
-            contract_code: "BTC-USD",
+            contract_code: this.contract_code + "-USD",
           },
         });
         if (res.status === "ok") {

@@ -1,8 +1,10 @@
 <template>
-  <el-aside width="20%" v-if="dataList.length">
+  <el-aside name="13" width="20%" v-if="dataList.length">
     <div class="item" v-for="(v, i) in dataList" :key="i">
       <div class="title">
-        <div class="bs">{{ v["title"].toLocaleUpperCase() }}</div>
+        <div class="bs" @click="handel(v.title)">
+          {{ v["title"].toLocaleUpperCase() }}
+        </div>
       </div>
       <div class="row" v-for="(val, _i) in v.data" :key="_i">
         <div class="col" v-for="(value, _i1) in val" :key="_i1">
@@ -14,13 +16,17 @@
 </template>
 <script>
 export default {
-  name: "",
+  name: "Sidebar",
   components: {},
   props: ["dataList"],
   data() {
     return {};
   },
-  methods: {},
+  methods: {
+    handel(title) {
+      this.$emit("getTitle", title);
+    },
+  },
   mounted() {},
   updated() {},
   watch: {
@@ -50,7 +56,7 @@ export default {
 .item .title .bs {
   margin-left: 5px;
   border-left: 3px solid rgb(35, 131, 255);
-
+  cursor: pointer;
   padding: 5px;
 }
 </style>
