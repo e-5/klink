@@ -1,8 +1,8 @@
 {
-  "name": "my-electron-app",
-  "version": "0.1.0",
-  "author": "your name",
-  "description": "My Electron app",
+  "name": "multi-kline",
+  "version": "0.1.2",
+  "author": "e",
+  "description": "多K量化",
   "main": "main.js",
   "scripts": {
     "start": "electron .",

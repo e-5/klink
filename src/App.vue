@@ -145,7 +145,7 @@ p {
   display: none;
 } */
 .Sidebar {
-  width: 20%;
+  /* width: 20%; */
   background-color: #1f2126;
   height: 100vh;
   overflow-y: scroll;
