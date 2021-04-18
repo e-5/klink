@@ -1,10 +1,10 @@
 <template>
   <div name="13" :style="astyle" v-if="dataList.length">
-    <!-- <div class="as-title">
+    <div class="as-title">
       <div class="img" :style="istyle" @click="handerIMG">
         <img :src="Right" alt="" />
       </div>
-    </div> -->
+    </div>
     <div class="item" v-for="(v, i) in dataList" :key="i">
       <div class="title">
         <div class="bs">
@@ -46,10 +46,10 @@ export default {
       this.$emit("getTitle", title);
     },
     handerIMG() {
-      console.log(123);
       this.open = !this.open;
       this.astyle.width = this.open ? "20%" : "90px";
       this.istyle.transform = this.open ? "rotate(180deg)" : "rotate(0deg)";
+      this.$emit("onChange", this.open);
     },
   },
   mounted() {},

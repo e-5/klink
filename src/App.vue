@@ -1,7 +1,12 @@
 <template>
   <div id="app" class="app">
-    <Sidebar @getTitle="getTitle" class="Sidebar" :dataList="TransactionInfo" />
-    <div class="contentMain">
+    <Sidebar
+      @onChange="onChange"
+      @getTitle="getTitle"
+      class="Sidebar"
+      :dataList="TransactionInfo"
+    />
+    <div class="contentMain" :style="contentS">
       <div v-for="(val, i) in dataList" :key="i">
         <ContentItem :data="val" :pIndex="i" />
       </div>
@@ -32,14 +37,38 @@ export default {
     ],
     TransactionInfo: [],
     contract_code: "BTC",
-    
+    contentS: {
+      marginLeft: "20%",
+    },
+    timeId: null,
   }),
   created() {
-    this.getContentData();
-    this.getTransactionInfo();
+    this.initPage();
   },
-  async mounted() {},
+  async mounted() {
+    this.initPageReq();
+  },
   methods: {
+    initPage(t) {
+      if (!t) {
+        this.initDataList();
+        this.initTransactionInfo();
+      }
+      this.getContentData();
+      this.getTransactionInfo();
+    },
+    initTransactionInfo() {
+      this.TransactionInfo = [];
+    },
+    initPageReq() {
+      if (this.timeId) clearInterval(this.timeId);
+      this.timeId = setInterval(() => {
+        this.initPage(true);
+      }, 1000 * 30);
+    },
+    onChange(t) {
+      this.contentS.marginLeft = t ? "20%" : "90px";
+    },
     initDataList() {
       this.dataList = [
         // 1min 5min 60min 4hour 1week 1mon
@@ -53,8 +82,8 @@ export default {
     },
     getTitle(t) {
       this.contract_code = t;
-      this.initDataList();
-      this.getContentData();
+      this.initPage()
+      this.initPageReq();
     },
     getContentData() {
       // const loading = this.loading;
@@ -160,7 +189,7 @@ p {
   justify-content: space-around;
   flex-wrap: wrap;
   padding: 15px;
-  width: 80%;
+  /* width: 80%; */
 }
 .app {
   display: flex;
